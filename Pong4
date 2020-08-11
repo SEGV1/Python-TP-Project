@@ -1,0 +1,978 @@
+from cmu_112_graphics import *
+#graphic framework from https://www.diderot.one/course/34/chapters/2791/
+import random
+import math
+import copy
+
+
+
+class Book():
+    def __init__(self, title):
+        self.p0 = "Welcome to the game help Nexus.\n Please use the arrow keys to flip pages."
+        self.p1 = "How to get help: \n By pressing h or Space, \n you can access the help page, \n or return to the game."
+        self.p2 = "How to play the game: \n By using the Left or Right keys, \n you can move your paddle, \n the goal being to block the ball \n from passing the paddle. \n To win, you must knockout the AI. \n Good Luck."
+        self.title = title
+        self.pages = [self.p0, self.p1, self.p2]
+        self.pageIndex = 0
+
+    def __len__(self):
+        """returns the amount of pages by checking the list length and
+        returning it"""
+        return len(self.pages)
+    def __repr__(self):
+        """returns the the title followed by the number of pages in brackets"""
+        return self.title + " " + f"[{len(self.pages)} pgs]"
+        
+    def flipBackward(self):
+        """shifts the page index back one, and if it is already on the first
+        page it returns false, else true"""
+        if self.getCurrentPage() == self.pages[0]:
+            return False
+        else:
+            self.pageIndex -= 1
+            return True
+
+    def flipForward(self):
+        """shifts the page index forward one, and if it is already on the last
+        page it returns false, else true"""
+        if self.getCurrentPage() == self.pages[len(self.pages)-1]:
+            return False
+        else:
+            self.pageIndex += 1
+            return True
+
+    def getCurrentPage(self):
+        """returns the current page that the page index is on"""
+        return self.pages[self.pageIndex]
+
+
+
+
+
+#############################
+##     paddle classes      ##
+#############################
+
+class PaddleUser(object):
+    def __init__(self, cx: int, cy: int):
+        """contains all the base variables needed for animating/determing 
+        the location of the paddle"""
+        self.speed = 10
+        self.cx = cx
+        self.cy = cy
+        self.width = 30
+        self.height = 5
+        self.mass = 999999999
+
+    def getLen(self):
+        return self.width
+
+    def getRad(self):
+        return 5
+
+    def getMass(self):
+        return self.mass
+
+    def getXVel(self):
+        return 0
+
+    def getYVel(self):
+        return 0
+
+    def getXPos(self):
+        return self.cx
+
+    def getYPos(self):
+        return self.cy
+
+    def move(self, direction: str):
+        """moves the paddle by adding/subtracting the speed"""
+        if direction == "Right":
+            self.cx += self.speed
+        elif direction == "Left":
+            self.cx -= self.speed
+
+    
+    def render(self, canvas):
+        """draws the paddle based off the variables in the __init__"""
+        canvas.create_rectangle(self.cx - self.width, self.cy - self.height, 
+        self.cx + self.width, self.cy + self.height, fill = "black", width = 0)
+
+
+class PaddleTop(object):
+    def __init__(self, cx: int, cy: int):
+        """contains all the base variables needed for animating/determing 
+        the location of the paddle"""
+        self.speed = 10
+        self.cx = cx
+        self.cy = cy
+        self.width = 30
+        self.height = 5
+        self.mass = 99999999999
+
+    def getLen(self):
+        return self.width
+
+    def getRad(self):
+        return 5
+
+
+    def getMass(self):
+        return self.mass
+
+    def getXVel(self):
+        return 0
+
+    def getYVel(self):
+        return 0
+
+    def getXPos(self):
+        return self.cx
+
+    def getYPos(self):
+        return self.cy
+
+    def move(self, direction: str):
+        """moves the paddle by adding/subtracting the speed"""
+        if direction == "Right":
+            self.cx -= self.speed
+        elif direction == "Left":
+            self.cx += self.speed
+
+    
+    def render(self, canvas):
+        """draws the paddle based off the variables in the __init__"""
+        canvas.create_rectangle(self.cx - self.width, self.cy - self.height, 
+        self.cx + self.width, self.cy + self.height, fill = "black", width = 0)
+
+
+class PaddleLeft(object):
+    def __init__(self, cx: int, cy: int):
+        """contains all the base variables needed for animating/determing 
+        the location of the paddle"""
+        self.speed = 10
+        self.cx = cx
+        self.cy = cy
+        self.width = 30
+        self.height = 5
+
+    def getLen(self):
+        return self.width
+
+    def getRad(self):
+        return 5
+
+
+    def getMass(self):
+        return self.mass
+
+    def getXVel(self):
+        return 0
+
+    def getYVel(self):
+        return 0
+
+    def getXPos(self):
+        return self.cx
+
+    def getYPos(self):
+        return self.cy
+
+    def move(self, direction: str):
+        """moves the paddle by adding/subtracting the speed"""
+        if direction == "Right":
+            self.cy += self.speed
+        elif direction == "Left":
+            self.cy -= self.speed
+
+    
+    def render(self, canvas):
+        """draws the paddle based off the variables in the __init__"""
+        canvas.create_rectangle(self.cx - self.height, self.cy - self.width, 
+        self.cx + self.height, self.cy + self.width, fill = "black", width = 0)
+
+
+class PaddleRight(object):
+    def __init__(self, cx: int, cy: int):
+        """contains all the base variables needed for animating/determing 
+        the location of the paddle"""
+        self.speed = 10
+        self.cx = cx
+        self.cy = cy
+        self.width = 30
+        self.height = 5
+
+    def getLen(self):
+        return self.width
+
+    def getRad(self):
+        return 5
+
+
+    def getMass(self):
+        return self.mass
+
+    def getXVel(self):
+        return 0
+
+    def getYVel(self):
+        return 0
+
+    def getXPos(self):
+        return self.cx
+
+    def getYPos(self):
+        return self.cy
+
+
+    def move(self, direction: str):
+        """moves the paddle by adding/subtracting the speed"""
+        if direction == "Right":
+            self.cy -= self.speed
+        elif direction == "Left":
+            self.cy += self.speed
+
+    
+    def render(self, canvas):
+        """draws the paddle based off the variables in the __init__"""
+        canvas.create_rectangle(self.cx - self.height, self.cy - self.width, 
+        self.cx + self.height, self.cy + self.width, fill = "black", width = 0)
+
+
+
+
+
+###########################
+##     block classes     ##
+###########################
+
+
+class Block(object):
+    def __init__(self):
+        self.blocks = []
+        self.color = "white"
+
+    def getXVel(self):
+        return 0
+
+    def getYVel(self):
+        return 0
+
+    def getXPos(self, block: list):
+        return block[0]
+
+    def getYPos(self, block: list):
+        return block[1]
+
+    def getMass(self):
+        return self.mass
+
+    
+
+
+    # def collidesWith(self, other.cx, other.cy, etc):
+    #     # if collide.collidesWith(other):
+    #     #     ball.speed = ball.speed
+    #     #     ball.angle = 180-ball.angle
+    #     pass
+
+    def spawn(self):
+        for i in range(9):
+            for i in range(0, 5, 2):
+                for j in range(0, 5, 2):
+                    self.blocks.append([j*35+140,i*35+140,17])
+             
+
+    def render(self, canvas):
+        for block in self.blocks:
+            canvas.create_rectangle(block[0]-block[2], block[1]-block[2],
+            block[0]+block[2], block[1]+block[2], fill = self.color)
+
+
+class Ball(object):
+    def __init__(self, cx, cy):
+        self.size = 8
+        self.speed = 20
+        self.cx = cx
+        self.cy = cy
+        self.vx = 0
+        self.vy = 0
+        self.color = "black"
+        self.mass = 1
+
+    def getRad(self):
+        return self.size
+
+    def getMass(self):
+        return self.mass
+    
+    def getXVel(self):
+        return self.vx
+
+    def getYVel(self):
+        return self.vy
+
+    def getXPos(self):
+        return self.cx
+
+    def getYPos(self):
+        return self.cy
+
+    def setVel(self, vx, vy):
+        self.vx = vx
+        self.vy = vy
+
+    def speedPowerUp(self):
+        self.speed = 100
+
+    def sizeDecrease(self):
+        self.size = 5
+
+    def move(self):
+        self.cx += self.vx
+        self.cy += self.vy
+
+
+    def render(self, canvas):
+        canvas.create_oval(self.cx-self.size, self.cy-self.size,
+        self.cx+self.size, self.cy+self.size, fill = "black")
+        
+class PowerUp(object):
+    def __init__(self):
+        self.powerUps = []
+        self.block = Block()
+        self.block.spawn()
+        self.radius = 13
+        self.totalSpawned = 0
+
+    def spawn2(self):
+        isSpawned = False
+        while isSpawned == False:
+            cx = random.randint(140, 280)
+            cy = random.randint(140, 280)
+            for block in self.block.blocks:
+                if (cx,cy) != (block[0],block[1]):
+                    self.powerUps.append([cx, cy, "double"])
+                    self.totalSpawned += 1
+                    isSpawned = True
+
+
+    def render(self, canvas):
+        for powerUp in self.powerUps:
+            if powerUp[2] == "double":
+                canvas.create_oval(powerUp[0]-self.radius, powerUp[1]-self.radius, powerUp[0]+self.radius,
+                powerUp[1]+self.radius, fill = "lightgreen", width = 2, outline = "green")
+
+
+
+class Border(object):
+    def __init__(self):
+        self.foo = 42
+
+    def render(self, canvas):
+        canvas.create_line(50, 110, 50, 310, fill = "black", width = 0)
+        canvas.create_line(50, 110, 110, 110, fill = "black", width = 0)
+        canvas.create_line(110, 110, 110, 50, fill = "black", width = 0)
+        canvas.create_line(110, 50, 310, 50, fill = "black", width = 0)
+        canvas.create_line(310, 50, 310, 110, fill = "black", width = 0)
+        canvas.create_line(310, 110, 370, 110, fill = "black", width = 0)
+        canvas.create_line(370, 110, 370, 310, fill = "black", width = 0)
+        canvas.create_line(370, 310, 310, 310, fill = "black", width = 0)
+        canvas.create_line(310, 310, 310, 370, fill = "black", width = 0)
+        canvas.create_line(310, 370, 110, 370, fill = "black", width = 0)
+        canvas.create_line(110, 370, 110, 310, fill = "black", width = 0)
+        canvas.create_line(110, 310, 50, 310, fill = "black", width = 0)
+
+
+
+
+
+
+class Collisions(object):
+
+    #assumes that objects contain variables for mass, x position, y position, x velocity, and y velocity
+    def __init__(self):
+        self.foo = 42
+
+    def checkForCollision1(self, object1, object2, hitBox = 0):
+        #hitBox is an int that can be set to the desired hit box size.
+        #Default size is 0 meaning the coordinates must match exactly in order for a collision to be recorded
+        
+        if ((object1.getXPos()-object2.getXPos())**2+(object1.getYPos()-object2.getYPos())**2)**(1/2) <= object1.getRad()+object2.getRad():
+            # gets masses of the spheres
+            m1 = object1.getMass()
+            m2 = object2.getMass()
+
+            # gets the initial x velocities of the spheres
+            vx1 = object1.getXVel()
+            vx2 = object2.getXVel()
+
+            # calculates the x velocity of the center of mass
+            vxcom = (m1*vx1 + m2*vx2)/(m1 + m2)
+
+            # uses OMom to calculate the new x velocities of the spheres
+            newvx1 = vx1 - vxcom
+            newvx1 = 1 * newvx1
+            newvx1 = newvx1 + vxcom
+
+            newvx2 = vx2 - vxcom
+            newvx2 = -1 * newvx2
+            newvx2 = newvx2 + vxcom
+
+            # gets the initial y velocities of the spheres
+            vy1 = object1.getYVel()
+            vy2 = object2.getYVel()
+
+            # calculates the y velocity of the center of mass        
+            vycom = (m1*vy1 + m2*vy2)/(m1 + m2)
+
+            # uses OMom to calculate the new y velocities of the spheres
+            newvy1 = vy1 - vycom
+            newvy1 = -1 * newvy1
+            newvy1 = newvy1 + vycom
+
+            newvy2 = vy2 - vycom
+            newvy2 = -1 * newvy2
+            newvy2 = newvy2 + vycom
+    
+            #print(str(newvx1) + ", " + str(newvy1) + ", " + str(newvx2) + ", " + str(newvy2))
+
+            return (newvx1,newvy1,newvx2,newvy2)
+        return None
+    
+    def checkForCollision(self, object1, object2):
+        #hitBox is an int that can be set to the desired hit box size.
+        #Default size is 0 meaning the coordinates must match exactly in order for a collision to be recorded
+        #assumes than object 1 is the box and object 2 is the ball
+
+        #Checks to see if ball has hit a corner of the box
+
+        #Checks to see if ball has hit the top side of the box     
+        if (object2.getYPos()+object2.getRad() == object1[1] - 17) and (object1[0] - 17 <= object2.getXPos() <= object1[0] + 17):
+            newvy = -1*object2.getYVel()
+            newvx = object2.getXVel()
+            return (newvx, newvy)
+                
+
+        #Checks to see if ball has hit the bottom side of the box  
+        elif (object2.getYPos()-object2.getRad() == object1[1] + 17) and (object1[0] - 17 <= object2.getXPos() <= object1[0] + 17):
+            newvy = -1*object2.getYVel()
+            newvx = object2.getXVel()
+            return (newvx, newvy)
+                
+
+        #Checks to see if ball has hit the right side of the box  
+        elif (object2.getXPos()-object2.getRad() == object1[0] + 17) and (object1[1] - 17 <= object2.getYPos() <= object1[1] + 17):
+            newvx = -1*object2.getXVel()
+            newvy = object2.getYVel()
+            return (newvx, newvy)
+                
+
+        #Checks to see if ball has hit the left side of the box  
+        elif (object2.getXPos()+object2.getRad() == object1[0] - 17) and (object1[1] - 17 <= object2.getYPos() <= object1[1] + 17): 
+            newvx = -1*object2.getXVel()
+            newvy = object2.getYVel()
+            return (newvx, newvy)
+
+        elif ((object2.getXPos()-object2.getRad() == object1[0]+17 and object2.getYPos()+object2.getRad() == object1[1]-17) or
+            (object2.getXPos()-object2.getRad() == object1[0]+17 and object2.getYPos()-object2.getRad() == object1[1]+17) or
+            (object2.getXPos()+object2.getRad() == object1[0]-17 and object2.getYPos()-object2.getRad() == object1[1]+17) or
+            (object2.getXPos()+object2.getRad() == object1[0]-17 and object2.getYPos()+object2.getRad() == object1[1]-17)):
+            newvy = -1*object2.getYVel()
+            newvx = -1*object2.getXVel()
+            return (newvx, newvy)
+
+        else:
+            return None
+                
+
+    def checkForCollisionPU(self, ball, paddle):
+        if paddle.getYPos()-paddle.getRad() <= ball.getYPos()+ball.getRad() <= paddle.getYPos()-paddle.getRad()+5 and paddle.getXPos()-paddle.getLen()<= ball.getXPos()<= paddle.getXPos()+paddle.getLen():
+            newvx = ball.getXVel()
+            newvy = ball.getYVel() * (-1)
+            return (newvx, newvy)
+        return None
+
+    def checkForCollisionPUL(self, ball, paddle):
+        if paddle.getXPos()-paddle.getLen() <= ball.getXPos()+ball.getRad() <= paddle.getXPos()-paddle.getLen()+10 and paddle.getYPos()-paddle.getRad() <= ball.getYPos() <= paddle.getYPos()+paddle.getRad():
+            newvx = ball.getXVel() * (-1)
+            newvy = ball.getYVel() * (-1)
+            return (newvx, newvy)
+        return None
+
+    def checkForCollisionPUR(self, ball, paddle):
+        if paddle.getXPos()+paddle.getLen()+10 <= ball.getXPos()-ball.getRad() <= paddle.getXPos()+paddle.getLen() and paddle.getYPos()-paddle.getRad() <= ball.getYPos() <= paddle.getYPos()+paddle.getRad():
+            newvx = ball.getXVel() * (-1)
+            newvy = ball.getYVel() * (-1)
+            return (newvx, newvy)
+        return None
+
+    def checkForCollisionPA(self, ball, paddle):
+        if paddle.getYPos()+paddle.getRad()-5 <= ball.getYPos()-ball.getRad() <= paddle.getYPos()+paddle.getRad() and paddle.getXPos()-paddle.getLen()<= ball.getXPos()<= paddle.getXPos()+paddle.getLen():
+            newvx = ball.getXVel() 
+            newvy = ball.getYVel() * -1
+            return (newvx, newvy)
+        return None 
+
+    def checkForCollisionWallAI(self, ball):
+        if 85 < ball.getYPos() < 110:
+            if ball.getXPos()-ball.getRad() <= 110 or ball.getXPos()+ball.getRad() >= 310:
+                newvx = newvx = ball.getXVel() * (-1)
+                newvy = ball.getYVel()
+                return (newvx, newvy)
+            return None
+        return None
+
+    def checkForCollisionWallU(self, ball):
+        if 310 < ball.getYPos() < 335:
+            if ball.getXPos()-ball.getRad() <= 110 or ball.getXPos()+ball.getRad() >= 310:
+                newvx = newvx = ball.getXVel() * (-1)
+                newvy = ball.getYVel()
+                return (newvx, newvy)
+            return None
+        return None
+        
+    def checkForCollisionUGoal(self, ball):
+        if ball.getYPos() >= 335:
+            if ball.getXPos()-ball.getRad() <= 110 or ball.getXPos()+ball.getRad() >= 310:
+                return True
+            elif ball.getYPos()+ball.getRad() >= 372:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+        
+    def checkForCollisionAIGoal(self, ball):
+        if ball.getYPos() <= 85:
+            if ball.getXPos()-ball.getRad() <= 110 or ball.getXPos()+ball.getRad() >= 310:
+                newvx = ball.getXVel() * (-1) 
+                newvy = ball.getYVel()
+                return (newvx, newvy)
+            elif ball.getYPos()-ball.getRad() <= 50:
+                newvx = ball.getXVel() 
+                newvy = ball.getYVel() * (-1) 
+                return (newvx, newvy)
+            else: 
+                return None
+        else:
+            return None
+
+    def checkForCollisionLGoal(self, ball):
+        if ball.getXPos() <= 85:
+            if ball.getYPos()-ball.getRad() <= 110 or ball.getYPos()+ball.getRad() >= 310:
+                newvx = ball.getXVel() 
+                newvy = ball.getYVel() * (-1)
+                return (newvx, newvy)
+            elif ball.getXPos()-ball.getRad() <= 50:
+                newvx = ball.getXVel() * (-1)
+                newvy = ball.getYVel()
+                return (newvx, newvy)
+            else:
+                return None
+        else:
+            return None
+
+    def checkForCollisionRGoal(self, ball):
+        if ball.getXPos() >= 335:
+            if ball.getYPos()-ball.getRad() <= 110 or ball.getYPos()+ball.getRad() >= 310:
+                newvx = ball.getXVel() 
+                newvy = ball.getYVel() * (-1)
+                return (newvx, newvy)
+            elif ball.getXPos()+ball.getRad() >= 372:
+                newvx = ball.getXVel() * (-1)
+                newvy = ball.getYVel()
+                return (newvx, newvy)
+            else:
+                return None
+        else:
+            return None
+
+    def checkForCollisionWallR(self, ball):
+        if 310 < ball.getXPos() < 335:
+            if ball.getYPos()-ball.getRad() <= 110 or ball.getYPos()+ball.getRad() >= 310:
+                newvx = ball.getXVel()
+                newvy = ball.getYVel() * (-1)
+                return (newvx, newvy)
+            return None
+        return None
+
+
+    def checkForCollisionWallL(self, ball):
+        if 85 < ball.getXPos() < 110:
+            if ball.getYPos()-ball.getRad() <= 110 or ball.getYPos()+ball.getRad() >= 310:
+                newvx = ball.getXVel() 
+                newvy = ball.getYVel() * (-1)
+                return (newvx, newvy)
+            return None
+        return None
+
+    def checkForCollisionPR(self, ball, paddle):
+        if paddle.getXPos()-paddle.getRad() <= ball.getXPos()+ball.getRad() <= paddle.getXPos()-paddle.getRad()+5 and paddle.getYPos()-paddle.getLen()<= ball.getYPos()<= paddle.getYPos()+paddle.getLen():
+            newvx = ball.getXVel() * (-1)
+            newvy = ball.getYVel() * random.choice([-1,1])
+            return (newvx, newvy)
+        return None
+
+
+    def checkForCollisionPL(self, ball, paddle):
+        if paddle.getXPos()+paddle.getRad()-5 <= ball.getXPos()-ball.getRad() <= paddle.getXPos()+paddle.getRad() and paddle.getYPos()-paddle.getLen()<= ball.getYPos()<= paddle.getYPos()+paddle.getLen():
+            newvx = ball.getXVel() * (-1)
+            newvy = ball.getYVel() * random.choice([-1,1])
+            return (newvx, newvy)
+        return None
+
+
+
+
+
+class AI(object):
+    def __init__(self):
+        self.foo = 42
+    
+
+    def react(self, xPos, yPos, xVel, yVel, paddleX, paddleY):
+        ballX = xPos
+        ballY = yPos
+        paddleX = paddleX
+        paddleY = paddleY
+        ballSpdX = xVel
+        ballSpdY = yVel
+        distY = abs(ballY-paddleY)
+        timeToReach = distY/(ballSpdY+0.01) #timeToReach is the amount of calls needed of ballSpdY to cover distY
+        if 110 <= ballX + (ballSpdX*timeToReach) <= 310:
+            if paddleX != ballX + (ballSpdX*timeToReach):
+                if paddleX < ballX +(ballSpdX*timeToReach)+7:
+                    while paddleX < ballX +(ballSpdX*timeToReach):
+                        return("Left")
+                elif paddleX > ballX +(ballSpdX*timeToReach)-7:
+                    while paddleX > ballX +(ballSpdX*timeToReach):
+                        return("Right")
+            return 
+        return
+
+    def reactL(self, xPos, yPos, xVel, yVel, paddleX, paddleY):
+        ballX = xPos
+        ballY = yPos
+        paddleX = paddleX
+        paddleY = paddleY
+        ballSpdX = xVel
+        ballSpdY = yVel
+        distX = abs(ballX-paddleX)
+        timeToReach = distX/(ballSpdX+0.01) #timeToReach is the amount of calls needed of ballSpdY to cover distY
+        if 110 <= ballY + (ballSpdY*timeToReach) <= 310:
+            if paddleY != ballY + (ballSpdY*timeToReach):
+                if paddleY < ballY +(ballSpdY*timeToReach)+7:
+                    while paddleY < ballY +(ballSpdY*timeToReach):
+                        return("Right")
+                elif paddleY > ballY +(ballSpdY*timeToReach)-7:
+                    while paddleY > ballY +(ballSpdY*timeToReach):
+                        return("Left")
+            return 
+        return
+
+    def reactR(self, xPos, yPos, xVel, yVel, paddleX, paddleY):
+        ballX = xPos
+        ballY = yPos
+        paddleX = paddleX
+        paddleY = paddleY
+        ballSpdX = xVel
+        ballSpdY = yVel
+        distX = abs(ballX-paddleX)
+        timeToReach = distX/(ballSpdX+0.01) #timeToReach is the amount of calls needed of ballSpdY to cover distY
+        if 110 <= ballY + (ballSpdY*timeToReach) <= 310:
+            if paddleY != ballY + (ballSpdY*timeToReach):
+                if paddleY < ballY +(ballSpdY*timeToReach)+7:
+                    while paddleY < ballY +(ballSpdY*timeToReach):
+                        return("Left")
+                elif paddleY > ballY +(ballSpdY*timeToReach)-7:
+                    while paddleY > ballY +(ballSpdY*timeToReach):
+                        return("Right")
+            return 
+        return
+    
+        
+
+class Pong4(ModalApp):
+    def appStarted(self):
+        """assigns all the game modes and starts the method"""
+        self.addMode(PlayMode(name="play")) 
+        self.addMode(HelpMode(name="help"))
+        self.addMode(GameOver(name="gameOver"))
+        self.addMode(StartMode(name="start"))
+        self.addMode(GameWon(name="gameWon"))
+        self.setActiveMode("start")
+
+
+class GameWon(Mode):
+    def appStarted(self):
+        self.foo = 42
+
+    def modeActivated(self):
+        print("Welcome, congratulations on eliminating all 3 AI's.")
+        self.appStarted()
+
+    def keyPressed(self, event):
+        if event.key == "r":
+            self.setActiveMode("r")
+
+    def redrawAll(self, canvas):
+        canvas.create_text(self.width//2, self.height//2-40, text = "You have defeated all 3 AI's!", font = "Times 24 bold")
+        canvas.create_text(self.width//2, self.height//2, text = "If you wish to play again, press r. \n \nPlease press r to restart the game.", font = "Times 14 italic")
+
+
+
+
+
+#image source from https://www.google.com/search?q=realm+of+the+mad+god&source=lnms&tbm=isch&sa=X&ved=2ahUKEwi9t4yPtonrAhUFnKwKHT_QBNIQ_AUoAXoECBwQAw#imgrc=FvpFOw1kz4-QKM
+#image source from https://www.google.com/search?q=pong&tbm=isch&ved=2ahUKEwjww9yvtonrAhUHNa0KHanACLgQ2-cCegQIABAA&oq=pong&gs_lcp=CgNpbWcQAzIHCAAQsQMQQzIECAAQQzIFCAAQsQMyBAgAEEMyBQgAELEDMgQIABBDMgQIABBDMgUIABCxAzICCAAyBQgAELEDUPEcWP8fYI8haABwAHgAgAFIiAGQApIBATSYAQCgAQGqAQtnd3Mtd2l6LWltZ8ABAQ&sclient=img&ei=fHUtX_CVL4fqtAWpgaPACw&bih=892&biw=1676#imgrc=rp_U7fSn5IdrUM
+class StartMode(Mode):
+    def appStarted(self):
+        self.cx = self.width//2
+        self.cy = self.height//2
+        self.image = self.loadImage("pong4.png")
+        self.scale = 1/2
+        self.image1 = self.scaleImage(self.image, self.scale)
+
+
+    def modeActivated(self):
+        print("Welcome to Pong4, please press s to start or h to access the help nexus.")
+        print("Note, you may wish to resize the interface after you enter the game.")
+        self.appStarted()
+
+    def keyPressed(self, event):
+        if event.key == "s":
+            self.setActiveMode("play")
+        elif event.key == "h":
+            self.setActiveMode("help")
+        else:
+            return
+
+    def redrawAll(self, canvas):
+        canvas.create_image(self.cx, self.cy, image=ImageTk.PhotoImage(self.image1))
+        canvas.create_text(self.cx, self.cy+50, text= "Welcome to Pong4, press s to start or h to access help.", font = "Arial 10 bold", fill = "white")
+
+
+
+
+class HelpMode(Mode):
+    def appStarted(self):
+        """assigns values to the 2 start variables and prints a message"""
+        cx = self.width//2
+        cy = self.height//2
+        self.book = Book("game help")
+
+    def modeActivated(self):
+        """prints out a message when the mode is entered"""
+        print("You are now in the game help Nexus")
+
+    def keyPressed(self, event):
+        """determines the key pressed, and accordingly either returns to a different 
+        mode or instead flips a page of the help book"""
+        if event.key == "Space":
+            self.setActiveMode("play")
+        if event.key == "Right":
+            self.book.flipForward()
+        if event.key == "Left":
+            self.book.flipBackward()
+
+    def redrawAll(self, canvas):
+        canvas.create_text(self.width//2, self.height//2, text = f"{self.book.getCurrentPage()}", font = "Times 14 italic")
+
+
+
+class GameOver(Mode):
+    def appStarted(self):
+        """prints out a starting message to inform the play and also 
+        calls the playmode to access the attributes of play"""
+        print("You are now in the gameover Nexus")
+        self.playMode = self.getMode("play")
+
+    def keyPressed(self, event):
+        if event.key == "r":
+            self.setActiveMode("play")
+        else:
+            return
+
+    def redrawAll(self, canvas):
+        canvas.create_text(self.width//2, self.height//2-40, text = "You have died.....", font = "Times 24 bold")
+        canvas.create_text(self.width//2, self.height//2, text = "If you wish to play again, press r. \n \nPlease press r to restart the game.", font = "Times 14 italic")
+
+
+class PlayMode(Mode):
+    def appStarted(self):
+        print("You are now in the game nexus")
+        self.border = Border()
+        self.ball = Ball(210, 320)
+        self.paddle = PaddleUser(210, 340)
+        self.paddleAI = PaddleTop(210, 80)
+        self.paddleL = PaddleLeft(80, 210)
+        self.paddleR = PaddleRight(340, 210)
+        self.powerUp = PowerUp()
+        self.block = Block()
+        self.AI = AI()
+        self.block.spawn()
+        self.ball.vx = random.choice([-1, 1]) 
+        # random.choice([-5, 5]) 
+        self.ball.vy = random.choice([-1, 1]) 
+        # random.choice([-5, 5]) 
+        self.timer = 0
+        self.clock = 0
+        self.timerDelay = 50
+        self.collision = Collisions()
+        self.clock = 0
+        self.AITopAlive = True
+        self.AILeftAlive = True
+        self.AIRightAlive = True
+
+
+    def modeActivated(self):
+        """calls the appstarted to initalize all the variables"""
+        self.appStarted()
+
+    def timerFired(self):
+        self.timer += 1
+        self.ball.move()
+        if self.AITopAlive == True:
+            if self.AI.react(self.ball.getXPos(), self.ball.getYPos(), self.ball.getXVel(), self.ball.getYVel(), self.paddleAI.getXPos(), self.paddleAI.getYPos()) == "Right":
+                self.paddleAI.move("Right")
+            elif self.AI.react(self.ball.getXPos(), self.ball.getYPos(), self.ball.getXVel(), self.ball.getYVel(), self.paddleAI.getXPos(), self.paddleAI.getYPos()) == "Left":
+                self.paddleAI.move("Left")
+        else:
+            return
+        if self.AILeftAlive == True:
+            if self.AI.reactL(self.ball.getXPos(), self.ball.getYPos(), self.ball.getXVel(), self.ball.getYVel(), self.paddleL.getXPos(), self.paddleL.getYPos()) == "Right":
+                self.paddleL.move("Right")
+            elif self.AI.reactL(self.ball.getXPos(), self.ball.getYPos(), self.ball.getXVel(), self.ball.getYVel(), self.paddleL.getXPos(), self.paddleL.getYPos()) == "Left":
+                self.paddleL.move("Left")
+        else:
+            return
+        if self.AIRightAlive == True:
+            if self.AI.reactR(self.ball.getXPos(), self.ball.getYPos(), self.ball.getXVel(), self.ball.getYVel(), self.paddleR.getXPos(), self.paddleR.getYPos()) == "Right":
+                self.paddleR.move("Right")
+            elif self.AI.reactR(self.ball.getXPos(), self.ball.getYPos(), self.ball.getXVel(), self.ball.getYVel(), self.paddleR.getXPos(), self.paddleR.getYPos()) == "Left":
+                self.paddleR.move("Left")
+        else:
+            return
+        
+
+
+
+        frequency1 = 1000
+        frequency2 = 2000
+        if self.timer%(frequency1//self.timerDelay) == 0:
+            self.clock += 1
+        # if self.timer%(frequency2//self.timerDelay) == 0:
+        #     self.powerUp.spawn2()
+
+
+        for block in self.block.blocks:
+            if self.collision.checkForCollision(block, self.ball) != None:
+                self.ball.setVel(self.collision.checkForCollision(block, self.ball)[0], self.collision.checkForCollision(block, self.ball)[1])
+        if self.collision.checkForCollisionWallU(self.ball) != None:
+            self.ball.setVel(self.collision.checkForCollisionWallU(self.ball)[0], self.collision.checkForCollisionWallU(self.ball)[1])
+        elif self.collision.checkForCollisionWallAI(self.ball) != None:
+            self.ball.setVel(self.collision.checkForCollisionWallAI(self.ball)[0], self.collision.checkForCollisionWallAI(self.ball)[1])
+        elif self.collision.checkForCollisionWallL(self.ball) != None:
+            self.ball.setVel(self.collision.checkForCollisionWallL(self.ball)[0], self.collision.checkForCollisionWallL(self.ball)[1])
+        elif self.collision.checkForCollisionWallR(self.ball) != None:
+            self.ball.setVel(self.collision.checkForCollisionWallR(self.ball)[0], self.collision.checkForCollisionWallR(self.ball)[1])
+        elif self.collision.checkForCollisionPU(self.ball, self.paddle) != None:
+            self.ball.setVel(self.collision.checkForCollisionPU(self.ball, self.paddle)[0], self.collision.checkForCollisionPU(self.ball, self.paddle)[1])
+        elif self.collision.checkForCollisionPUL(self.ball, self.paddle) != None:
+            self.ball.setVel(self.collision.checkForCollisionPUL(self.ball, self.paddle)[0], self.collision.checkForCollisionPUL(self.ball, self.paddle)[1])
+        elif self.collision.checkForCollisionPUR(self.ball, self.paddle) != None:
+            self.ball.setVel(self.collision.checkForCollisionPUR(self.ball, self.paddle)[0], self.collision.checkForCollisionPUR(self.ball, self.paddle)[1])
+        elif self.collision.checkForCollisionPA(self.ball, self.paddleAI) != None:
+            self.ball.setVel(self.collision.checkForCollisionPA(self.ball, self.paddleAI)[0], self.collision.checkForCollisionPA(self.ball, self.paddleAI)[1])
+        elif self.collision.checkForCollisionPL(self.ball, self.paddleL) != None:
+            self.ball.setVel(self.collision.checkForCollisionPL(self.ball, self.paddleL)[0], self.collision.checkForCollisionPL(self.ball, self.paddleL)[1])
+        elif self.collision.checkForCollisionPR(self.ball, self.paddleR) != None:
+            self.ball.setVel(self.collision.checkForCollisionPR(self.ball, self.paddleR)[0], self.collision.checkForCollisionPR(self.ball, self.paddleR)[1])
+        elif self.collision.checkForCollisionUGoal(self.ball) == True:
+                self.setActiveMode("gameOver")
+              
+        if self.collision.checkForCollisionAIGoal(self.ball) != None:
+            self.ball.setVel(self.collision.checkForCollisionAIGoal(self.ball)[0], self.collision.checkForCollisionAIGoal(self.ball)[1])
+            self.AITopAlive = False
+        elif self.collision.checkForCollisionLGoal(self.ball) != None:
+            self.ball.setVel(self.collision.checkForCollisionLGoal(self.ball)[0], self.collision.checkForCollisionLGoal(self.ball)[1])
+            self.AILeftAlive = False
+        elif self.collision.checkForCollisionRGoal(self.ball) != None:
+            self.ball.setVel(self.collision.checkForCollisionRGoal(self.ball)[0], self.collision.checkForCollisionRGoal(self.ball)[1])
+            self.AIRightAlive = False
+        
+        if self.AITopAlive == False and self.AILeftAlive == False and self.AIRightAlive == False:
+            self.setActiveMode("gameWon")
+
+        
+
+ 
+
+
+    def keyPressed(self, event):
+
+        if event.key == "Right":
+            if self.paddle.cx+self.paddle.width < 310:
+                if self.paddle.getXPos()+self.paddle.getLen() > self.ball.getXPos()-self.ball.getRad() or self.paddle.getYPos()-self.paddle.getRad() > self.ball.getYPos()+self.ball.getRad():   
+                    self.paddle.move("Right")
+                    # self.paddleAI.move("Left")
+                    # self.paddleL.move("Right")
+                    # self.paddleR.move("Left")
+                else:
+                    return
+            else:
+                return
+        elif event.key == "Left":
+            if self.paddle.cx-self.paddle.width > 110:
+                if self.paddle.getXPos()-self.paddle.getLen() > self.ball.getXPos()+self.ball.getRad() or self.paddle.getYPos()-self.paddle.getRad() > self.ball.getYPos()+self.ball.getRad():
+                    self.paddle.move("Left")
+                    # self.paddleAI.move("Right")
+                    # self.paddleL.move("Left")
+                    # self.paddleR.move("Right")
+
+                else:
+                    return
+            else:
+                return
+        elif event.key == "h":
+            self.setActiveMode("help")
+        
+
+    def redrawAll(self, canvas):
+        # self.powerUp.render(canvas) 
+        self.border.render(canvas)
+        self.block.render(canvas)
+        self.paddle.render(canvas)
+        self.paddleAI.render(canvas)
+        self.paddleL.render(canvas)
+        self.paddleR.render(canvas)
+        self.ball.render(canvas)
+        canvas.create_rectangle(400, 110, 550, 310)
+        canvas.create_text(475, 125, text = "AI Info:", font = "Times 14 bold")
+        canvas.create_rectangle(450, 134, 495, 136, fill = "lightgreen", width = 0)
+        if self.AITopAlive == True:
+            canvas.create_text(475, 150, text = "AI 1: Alive", font = "Times 14")
+        else:
+            canvas.create_text(475, 150, text = "AI 1: Dead", font = "Times 14")
+        if self.AIRightAlive == True:
+            canvas.create_text(475, 180, text = "AI 2: Alive", font = "Times 14")
+        else:
+            canvas.create_text(475, 180, text = "AI 2: Dead", font = "Times 14")
+        if self.AILeftAlive == True:
+            canvas.create_text(475, 210, text = "AI 3: Alive", font = "Times 14")
+        else:
+            canvas.create_text(475, 210, text = "AI 3: Dead", font = "Times 14")
+        canvas.create_line(400, 230, 550, 230)
+        canvas.create_text(475, 245, text = "Game Info:", font = "Times 14 bold")
+        canvas.create_rectangle(440, 255, 507, 257, fill = "lightgreen", width = 0)
+        canvas.create_text(475, 270, text = f"Time Passed(sec): {self.clock}", font = "Times 14")
+
+
+
+def main():
+    Pong4()
+
+if __name__ == "__main__":
+    main()
